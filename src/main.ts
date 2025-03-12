@@ -25,6 +25,7 @@ async function bootstrap() {
     .setTermsOfService('https://github.com/ahincho/Fractal-NodeJs-Backend')
     .build();
   const swaggerDocument = SwaggerModule.createDocument(app, docsConfiguration);
+  SwaggerModule.setup('/api/v1/docs', app, swaggerDocument);
   app.enableCors({
     origin: '*',
     credentials: true,
