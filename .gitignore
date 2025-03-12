@@ -1,4 +1,4 @@
-# compiled output
+# Compiled Output
 /dist
 /node_modules
 /build
@@ -19,7 +19,7 @@ lerna-debug.log*
 /coverage
 /.nyc_output
 
-# IDEs and editors
+# IDEs and Editors
 /.idea
 .project
 .classpath
@@ -35,18 +35,18 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# dotenv environment variable files
+# Dotenv Environment Variable Files
 .env
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
 
-# temp directory
+# Temp Directory
 .temp
 .tmp
 
-# Runtime data
+# Runtime Data
 pids
 *.pid
 *.seed
