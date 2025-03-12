@@ -11,7 +11,6 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   ) {}
   createTypeOrmOptions(): TypeOrmModuleOptions {
     return {
-      ssl: true,
       type: this.databaseConfigService.vendor,
       host: this.databaseConfigService.host,
       port: this.databaseConfigService.port,
