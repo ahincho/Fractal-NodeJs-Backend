@@ -30,7 +30,6 @@ export class CategoryService {
       categoryCreateRequest,
     );
     const savedCategoryEntity = await this._categoryRepository.save(categoryEntity);
-    console.log(savedCategoryEntity);
     return CategoryMapper.entityToResponse(savedCategoryEntity);
   }
   async findCategories(

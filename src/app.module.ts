@@ -18,6 +18,7 @@ import { CategoryEntity } from './entities/category.entity';
 import { CategoryService } from './services/category.service';
 import { CategoryController } from './controllers/category.controller';
 import { CategoryHttpExceptionFilter } from './filters/category.http.exception.filter';
+import { DetailService } from './services/detail.service';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { CategoryHttpExceptionFilter } from './filters/category.http.exception.f
     CategoryService,
     ProductService,
     OrderService,
+    DetailService,
     {
       provide: APP_FILTER,
       useClass: CategoryHttpExceptionFilter,

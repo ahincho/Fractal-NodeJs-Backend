@@ -12,15 +12,20 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { DetailService } from 'src/services/detail.service';
+import { OrderService } from 'src/services/order.service';
 import { OrderCreateRequest } from 'src/dtos/order.create.request';
 import { OrderDetailsResponse } from 'src/dtos/order.details.response';
 import { OrderQueryRequest } from 'src/dtos/order.query.request';
-import { OrderService } from 'src/services/order.service';
+import { OrderResponse } from 'src/dtos/order.response';
+import { Request, Response } from 'express';
 
 @Controller('/api/v1/orders')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly detailService: DetailService,
+  ) {}
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createOneOrder(
@@ -39,19 +44,36 @@ export class OrderController {
     @Res() response: Response,
     @Query() orderQueryRequest: OrderQueryRequest,
   ): Promise<void> {
-    const orderResponses =
-      await this.orderService.findOrders(orderQueryRequest);
+    const orderResponses = await this.orderService.findOrders(orderQueryRequest);
     if (orderResponses.items.length === 0) {
       response.status(HttpStatus.NO_CONTENT).send();
       return;
     }
     response.status(HttpStatus.OK).json(orderResponses);
   }
+  @Get('/details')
+  async findOrdersDetails(
+    @Res() response: Response,
+    @Query() orderQueryRequest: OrderQueryRequest,
+  ): Promise<void> {
+    const orderDetailResponses = await this.detailService.findDetails(orderQueryRequest);
+    if (orderDetailResponses.items.length === 0) {
+      response.status(HttpStatus.NO_CONTENT).send();
+      return;
+    }
+    response.status(HttpStatus.OK).json(orderDetailResponses);
+  }
   @Get(':orderId')
   async findOneOrder(
     @Param('orderId', ParseIntPipe) orderId: number,
-  ): Promise<OrderDetailsResponse> {
+  ): Promise<OrderResponse> {
     return await this.orderService.findOneOrderById(orderId);
+  }
+  @Get('/details/:orderId')
+  async findOneOrderDetails(
+    @Param('orderId', ParseIntPipe) orderId: number,
+  ): Promise<OrderDetailsResponse> {
+    return await this.detailService.findOneDetailById(orderId);
   }
   @Delete(':orderId')
   async deleteOneOrderById(

@@ -5,6 +5,7 @@ import { OrderCreateRequest } from 'src/dtos/order.create.request';
 import { OrderCreateResponse } from 'src/dtos/order.create.response';
 import { OrderDetailsResponse } from 'src/dtos/order.details.response';
 import { OrderQueryRequest } from 'src/dtos/order.query.request';
+import { OrderResponse } from 'src/dtos/order.response';
 import { DetailEntity } from 'src/entities/detail.entity';
 import { OrderEntity } from 'src/entities/order.entity';
 import { ProductEntity } from 'src/entities/product.entity';
@@ -77,9 +78,7 @@ export class OrderService {
       number: orderEntity.number,
     });
   }
-  async findOrders(
-    orderQueryRequest: OrderQueryRequest,
-  ): Promise<PageResponse<OrderDetailsResponse>> {
+  async findOrders(orderQueryRequest: OrderQueryRequest): Promise<PageResponse<OrderResponse>> {
     const { page, size, username } = orderQueryRequest;
     const skip = page * size;
     const take = size;
@@ -92,37 +91,10 @@ export class OrderService {
       take,
       order: { id: 'ASC' },
     });
-    if (orders.length === 0) {
-      return new PageResponse<OrderDetailsResponse>({
-        totalItems,
-        totalPages: Math.ceil(totalItems / size),
-        currentPage: page,
-        pageSize: size,
-        hasNextPage: page < Math.ceil(totalItems / size) - 1,
-        items: [],
-      });
-    }
-    const orderIds = orders.map((order) => order.id);
-    const orderDetails = await this._detailRepository.find({
-      where: { order: In(orderIds) },
-      relations: ['order', 'product'],
-      loadEagerRelations: false,
-    });
-    const orderMap = new Map<number, DetailEntity[]>();
-    orderDetails.forEach((detail) => {
-      if (!orderMap.has(detail.order.id)) {
-        orderMap.set(detail.order.id, []);
-      }
-      orderMap.get(detail.order.id)!.push(detail);
-    });
-    const orderResponses = await Promise.all(
-      orders.map(async (order) =>
-        OrderMapper.orderEntityToResponse(order, orderMap.get(order.id) || []),
-      ),
-    );
+    const orderResponses = orders.map(OrderMapper.entityToResponse);
     const totalPages = Math.ceil(totalItems / size);
     const hasNextPage = page < totalPages - 1;
-    return new PageResponse<OrderDetailsResponse>({
+      return new PageResponse<OrderResponse>({
       totalItems,
       totalPages,
       currentPage: page,
@@ -131,24 +103,15 @@ export class OrderService {
       items: orderResponses,
     });
   }
-  async findOneOrderById(orderId: number): Promise<OrderDetailsResponse> {
-    const order = await this._orderRepository.findOne({
-      where: { id: orderId },
-    });
-    if (!order) {
+  async findOneOrderById(orderId: number): Promise<OrderResponse> {
+    const orderEntity = await this._orderRepository.findOne({ where: { id: orderId } });
+    if (!orderEntity) {
       throw new OrderNotFoundException(`Order with id '${orderId}' not found`);
     }
-    const orderDetails = await this._detailRepository.find({
-      where: { order: { id: orderId } },
-      relations: ['product'],
-      loadEagerRelations: false,
-    });
-    return OrderMapper.orderEntityToResponse(order, orderDetails);
+    return OrderMapper.entityToResponse(orderEntity);
   }
   async deleteOneOrderById(orderId: number): Promise<void> {
-    const exists = await this._orderRepository.exists({
-      where: { id: orderId },
-    });
+    const exists = await this._orderRepository.exists({ where: { id: orderId } });
     if (!exists) {
       throw new OrderNotFoundException(`Order with id '${orderId}' not found`);
     }

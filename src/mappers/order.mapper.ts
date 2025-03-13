@@ -1,10 +1,22 @@
 import { DetailResponse } from 'src/dtos/detail.response';
 import { OrderDetailsResponse } from 'src/dtos/order.details.response';
+import { OrderResponse } from 'src/dtos/order.response';
 import { DetailEntity } from 'src/entities/detail.entity';
 import { OrderEntity } from 'src/entities/order.entity';
 
 export class OrderMapper {
-  static async orderEntityToResponse(
+  static entityToResponse(orderEntity: OrderEntity) {
+    return new OrderResponse({
+      id: orderEntity.id,
+      number: orderEntity.number,
+      username: orderEntity.username,
+      status: orderEntity.status,
+      total: orderEntity.total ? orderEntity.total : undefined,
+      createdAt: orderEntity.createdAt,
+      updatedAt: orderEntity.createdAt,
+    })
+  }
+  static async orderDetailsToResponse(
     orderEntity: OrderEntity,
     detailEntities?: DetailEntity[],
   ): Promise<OrderDetailsResponse> {
