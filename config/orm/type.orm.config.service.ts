@@ -17,12 +17,12 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       username: this.databaseConfigService.username,
       password: this.databaseConfigService.password,
       database: this.databaseConfigService.name,
-      poolSize: this.configService.get('typeOrm.poolSize'),
-      retryAttempts: this.configService.get('typeOrm.retryAttempts'),
-      retryDelay: this.configService.get('typeOrm.retryDelay'),
+      poolSize: Number(this.configService.get('typeOrm.poolSize')),
+      retryAttempts: Number(this.configService.get('typeOrm.retryAttempts')),
+      retryDelay: Number(this.configService.get('typeOrm.retryDelay')),
       autoLoadEntities: true,
-      synchronize: this.configService.get('typeOrm.synchronize'),
-      logging: this.configService.get('typeOrm.logging'),
+      synchronize: this.configService.get('typeOrm.synchronize') === 'true',
+      logging: this.configService.get('typeOrm.logging') === 'true',
     };
   }
 }
