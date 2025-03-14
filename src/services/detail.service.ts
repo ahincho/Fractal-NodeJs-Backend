@@ -5,6 +5,7 @@ import { OrderDetailsResponse } from "src/dtos/order.details.response";
 import { OrderQueryRequest } from "src/dtos/order.query.request";
 import { DetailEntity } from "src/entities/detail.entity";
 import { OrderEntity } from "src/entities/order.entity";
+import { ProductEntity } from "src/entities/product.entity";
 import { OrderNotFoundException } from "src/exceptions/order.not.found.exception";
 import { OrderMapper } from "src/mappers/order.mapper";
 import { In, Repository } from "typeorm";
@@ -12,6 +13,8 @@ import { In, Repository } from "typeorm";
 @Injectable()
 export class DetailService {
   constructor(
+    @InjectRepository(ProductEntity)
+    private readonly _productRepository: Repository<ProductEntity>,
     @InjectRepository(OrderEntity)
     private readonly _orderRepository: Repository<OrderEntity>,
     @InjectRepository(DetailEntity)

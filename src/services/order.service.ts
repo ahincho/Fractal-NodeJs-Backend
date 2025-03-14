@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PageResponse } from 'src/commons/page.response';
 import { OrderCreateRequest } from 'src/dtos/order.create.request';
 import { OrderCreateResponse } from 'src/dtos/order.create.response';
-import { OrderDetailsResponse } from 'src/dtos/order.details.response';
 import { OrderQueryRequest } from 'src/dtos/order.query.request';
 import { OrderResponse } from 'src/dtos/order.response';
+import { OrderUpdateRequest } from 'src/dtos/order.update.request';
 import { DetailEntity } from 'src/entities/detail.entity';
 import { OrderEntity } from 'src/entities/order.entity';
 import { ProductEntity } from 'src/entities/product.entity';
@@ -26,9 +26,7 @@ export class OrderService {
     @InjectRepository(ProductEntity)
     private readonly _productRepository: Repository<ProductEntity>,
   ) {}
-  async createOneOrder(
-    orderCreateRequest: OrderCreateRequest,
-  ): Promise<OrderCreateResponse> {
+  async createOneOrder(orderCreateRequest: OrderCreateRequest): Promise<OrderCreateResponse> {
     const productIds = orderCreateRequest.details.map(
       (detail) => detail.productId,
     );
@@ -109,6 +107,47 @@ export class OrderService {
       throw new OrderNotFoundException(`Order with id '${orderId}' not found`);
     }
     return OrderMapper.entityToResponse(orderEntity);
+  }
+  async updateOneOrderById(orderId: number, orderUpdateRequest: OrderUpdateRequest): Promise<void> {
+    const order = await this._orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['details'],
+    });
+    if (!order) {
+      throw new OrderNotFoundException(`Order with id '${orderId}' not found`);
+    }
+    if (order.username !== orderUpdateRequest.username) {
+      throw new OrderValidationException('Username does not match with order owner');
+    }
+    const productIds = orderUpdateRequest.details.map((d) => d.productId);
+    const products = await this._productRepository.find({
+      where: { id: In(productIds) },
+    });
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    const missingProducts = productIds.filter((id) => !productMap.has(id));
+    if (missingProducts.length > 0) {
+      throw new ProductNotFoundException(
+        `The following product(s) were not found: ${missingProducts.join(', ')}`
+      );
+    }
+    const insufficientStock = orderUpdateRequest.details.filter((d) => {
+      const product = productMap.get(d.productId);
+      return product && product.quantity < d.quantity;
+    });
+    if (insufficientStock.length > 0) {
+      throw new OrderValidationException(
+        `Insufficient stock for product(s): ${insufficientStock.map((p) => p.productId).join(', ')}`
+      );
+    }
+    const updatedDetails = orderUpdateRequest.details.map((d) =>
+      this._detailRepository.create({
+        order: order,
+        product: { id: d.productId } as ProductEntity,
+        quantity: d.quantity,
+      })
+    );
+    await this._detailRepository.delete({ order: { id: orderId } });
+    await this._detailRepository.save(updatedDetails);
   }
   async deleteOneOrderById(orderId: number): Promise<void> {
     const exists = await this._orderRepository.exists({ where: { id: orderId } });

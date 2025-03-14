@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -19,6 +20,7 @@ import { OrderDetailsResponse } from 'src/dtos/order.details.response';
 import { OrderQueryRequest } from 'src/dtos/order.query.request';
 import { OrderResponse } from 'src/dtos/order.response';
 import { Request, Response } from 'express';
+import { OrderUpdateRequest } from 'src/dtos/order.update.request';
 
 @Controller('/api/v1/orders')
 export class OrderController {
@@ -75,7 +77,16 @@ export class OrderController {
   ): Promise<OrderDetailsResponse> {
     return await this.detailService.findOneDetailById(orderId);
   }
+  @Patch(':orderId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateOneOrderById(
+    @Param('orderId', ParseIntPipe) orderId: number,
+    @Body() orderUpdateRequest: OrderUpdateRequest,
+  ): Promise<void> {
+    return await this.orderService.updateOneOrderById(orderId, orderUpdateRequest);
+  }
   @Delete(':orderId')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteOneOrderById(
     @Param('orderId', ParseIntPipe) orderId: number,
   ): Promise<void> {

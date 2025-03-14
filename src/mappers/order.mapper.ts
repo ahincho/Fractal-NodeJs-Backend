@@ -47,7 +47,7 @@ export class OrderMapper {
   ): Promise<DetailResponse> {
     const product = detail.product ? detail.product : null;
     return new DetailResponse({
-      id: detail.id,
+      id: detail.product.id,
       product: product ? product.name : 'Unknown',
       price: product ? product.price : 0.0,
       quantity: detail.quantity,
